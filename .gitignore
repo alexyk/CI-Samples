@@ -1,0 +1,10 @@
+# OSX
+.DS_Store
+._*
+
+
+# Vim swaps
+*.swp
+
+# Environment configs
+.env*

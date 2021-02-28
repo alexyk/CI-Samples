@@ -1,0 +1,73 @@
+image: node:14.15.3
+
+definitions:
+  steps:
+    - step: &analyse
+        name: Code Analysis (eslint)
+        trigger: automatic
+        caches:
+          - node
+        script:
+          - ./scripts/node-setup.sh
+          - yarn run lint
+
+    - step: &status
+        name: Status Report
+        trigger: automatic
+        caches:
+          - node
+        script:
+          - ./scripts/node-setup.sh
+          - ./scripts/system-version.sh
+          - ./scripts/mobile-app-status.sh
+          - ./scripts/library-status.sh
+
+    - step: &unit-test
+        name: Unit Testing
+        trigger: automatic
+        caches:
+          - node
+        script:
+          - ./scripts/node-setup.sh
+          - ./scripts/node-unit-test.sh
+
+    - step: &build-android-debug
+        name: Build Debug (Android, gradle)
+        image: reactnativecommunity/react-native-android:latest
+        trigger: automatic
+        caches:
+          - node
+          - gradle
+        script:
+          - ./scripts/node-setup.sh
+          - ./scripts/system-version.sh
+          - ./scripts/android-build.sh debug
+
+    - step: &build-android-release
+        name: Build Release (Android, gradle)
+        image: reactnativecommunity/react-native-android:latest
+        trigger: automatic
+        caches:
+          - node
+          - gradle
+        script:
+          - ./scripts/node-setup.sh
+          - ./scripts/system-version.sh
+          - ./scripts/android-build.sh release
+
+pipelines:
+  pull-requests:
+    '**':
+        - parallel:
+          # - step: *status
+          - step: *analyse
+          - step: *unit-test
+          # - step: *build-android-debug
+          - step: *build-android-release
+  default:
+  #   - parallel:
+  #     - step: *status
+  #     # - step: *analyse
+      - step: *unit-test
+  #     - step: *build-android-debug
+  #     - step: *build-android-release

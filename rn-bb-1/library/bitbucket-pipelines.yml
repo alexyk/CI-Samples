@@ -1,0 +1,51 @@
+image: node:14.15.1-stretch
+
+definitions:
+  steps:
+    - step: &status
+        name: Status Report
+        trigger: automatic
+        script:
+          - ./scripts/test-env-setup.sh
+          - ./scripts/react-native-setup.sh
+          - ./scripts/library-status.sh
+          - ./scripts/system-version.sh
+
+    - step: &unit-test
+        name: Unit Test
+        trigger: automatic
+        caches:
+          - node
+        script:
+          - ./scripts/test-env-setup.sh
+          - yarn test
+
+    - step: &analyse
+        name: ESLint Code Analysis
+        trigger: automatic
+        caches:
+          - node
+        script:
+          - ./scripts/test-env-setup.sh
+          - yarn lint
+
+    - step: &analyse-and-test
+        name: Analyse and Test
+        trigger: automatic
+        caches:
+          - node
+        script:
+          - ./scripts/test-env-setup.sh
+          - yarn lint
+          - yarn test-with-coverage
+
+pipelines:
+  pull-requests:
+    '**':
+      - step: *analyse-and-test
+  # default:
+  #   - parallel:
+  #     - step: *status
+  #     - step: *unit-test
+  #     - step: *analyse
+  #     - step: *analyse-and-test
